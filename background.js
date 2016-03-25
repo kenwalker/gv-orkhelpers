@@ -27,7 +27,7 @@ chrome.contextMenus.create(
   {
     "title" : "Calculate all awards",
     "type" : "normal",
-    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
+    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateAwards()
   }
 );
@@ -35,7 +35,7 @@ chrome.contextMenus.create(
   {
     "title" : "Calculate TaCD",
     "type" : "normal",
-    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
+    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateTaCD()
   }
 );
