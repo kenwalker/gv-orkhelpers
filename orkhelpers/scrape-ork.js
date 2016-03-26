@@ -5,7 +5,7 @@ var timer;
 // A function to use as callback
 function awardsFromData(pageContent) {
 	var $pageContent = $(pageContent);
-	var awards = ["Dragon", "Flame", "Garber", "Gryphon", "Hydra", "Jovious", "Lion", "Mask", "Owl", "Rose", "Warrior", "Zodiac"];
+	var awards = ["Dragon", "Flame", "Garber", "Gryphon", "Hydra", "Jovious", "Lion", "Mask", "Owl", "Rose", "Smith", "Warrior", "Zodiac"];
 	var arrayLength = awards.length;
 	var players = $pageContent.find("a[href*='Route=Player']");
 	numberOfPlayers = players.length;
