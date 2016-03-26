@@ -1,0 +1,53 @@
+body {
+  font: 14px Arial;
+}
+
+h1 {
+  margin: 30px 0 5px 0;
+  padding: 0;
+}
+code {
+  padding: 0;
+  margin: 5px 0;
+  display: block;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 15px 0;
+}
+td, th {
+  padding: 4px;
+}
+th {
+  text-align: left;
+  width: 130px;
+}
+tr {
+  display: none;
+}
+tr.rendered {
+  display: block;
+}
+tr.rendered:nth-child(odd) {
+  background: #eee;
+}
+
+#gryphon {
+  -webkit-box-shadow: 1px 1px 6px #000;
+  border: 4px solid #fff;
+  background: #fff;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+#loader {
+  font: 30px Arial;
+  text-align: center;
+  padding-top: 20px;
+}
+#status {
+  font: 24px Arial;
+  text-align: center;
+  padding-top: 30px;
+}
