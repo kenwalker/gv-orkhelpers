@@ -1,6 +1,14 @@
 var results = [];
 var numberOfPlayers;
+var numberOfEvents;
 var timer;
+var tacdOutput = "";
+var quarters = [];
+quarters['1'] = ['01', '02', '03'];
+quarters['2'] = ['04', '05', '06'];
+quarters['3'] = ['07', '08', '09'];
+quarters['4'] = ['10', '11', '12'];
+quarter = quarters[1];
 
 function awardsFromPlayerData(pageContent) {
 	var $pageContent = $(pageContent);
@@ -39,31 +47,34 @@ function attendanceFromPlayerData(pageContent, minAttendance) {
 	    var sixMonthsAgo = setMomentToMidnight(moment());
 	    sixMonthsAgo.set('month', sixMonthsAgo.get('month') - 6);
 	    sixMonthsAgo.startOf('week');
+	    var earliestAttendance;
 
 	    url.protocol = 'https';
 	    $.get(url.href, function( data ) {
+	      // debugger;
 		  // placeholder for keeping track of current weeks attendance
 		  var currentWeek = null;
 		    
 		  var attendanceCount = 0;
 	      var $playerHTML = $(data);
-	      var $attendance = $playerHTML.find("#Attendance a[href*='Route=Attendance']");
+	      var $attendance = $($($playerHTML.find("#Attendance thead")[1]).parent().children()[1]).children();
 	      var persona = $playerHTML.find("span:contains('Persona:')").next().html();
 	      var duesPaid = $playerHTML.find("span:contains('Dues Paid:')").next().html();
 	      if (duesPaid != "No") {
 	      	duesPaid = moment(duesPaid) <= moment() ? "No" : "Yes";
 	      }
-	      if (persona == 'Elridien') {
-	      	debugger;
-	      }
 	      var parks = [];
 	      $attendance.each(function() {
 	      	$attendanceTR = $(this);
+	      	$attendanceDateTD = $attendanceTR.children().first();
 	      	var newAttendanceInWeek = false;
-	      	attendanceDate = setMomentToMidnightPlusOne(moment($attendanceTR.text()));
-	      	attendancePark = $attendanceTR.parent().next().next().text();
+	      	var dateText = $attendanceDateTD.text();
+	      	console.log("<" + dateText + "> for " + persona);
+	      	attendanceDate = setMomentToMidnightPlusOne(moment(dateText));
+	      	earliestAttendance = attendanceDate;
+	      	attendancePark = $($attendanceTR.children()[2]).text();
 	      	if (attendancePark.length == 0) {
-		      	attendancePark = $attendanceTR.parent().next().next().next().text();
+		      	attendancePark = $($attendanceTR.children()[3]).text();
 	      	}
 	      	if (attendanceDate > sixMonthsAgo) {
 		      	if (currentWeek) {
@@ -83,7 +94,7 @@ function attendanceFromPlayerData(pageContent, minAttendance) {
 		      	}
 		     }
 	      });
-	      results.push(persona + "\t" + (attendanceCount > (minAttendance - 1) ? 'yes' : 'no') + "\t" + attendanceCount + "\t" + duesPaid + "\t" + parks.join(", ") + "\r\n");
+	      results.push(persona + "\t" + (((attendanceCount > (minAttendance - 1)) && earliestAttendance <= sixMonthsAgo) ? 'yes' : 'no') + "\t" + attendanceCount + "\t" + duesPaid + "\t" + parks.join(", ") + "\r\n");
 	    });    
 	});
 	timer = setInterval(waitForAttendance, 1000);
@@ -108,6 +119,44 @@ function attendanceNorthernEmpireFromParkURL(parkURL) {
 	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
 		attendanceFromPlayerData(data, 6);
 	});
+}
+
+function tacdFromParkURL(parkURL) {
+	var parkNumber = parkNumberFromURL(parkURL);
+	var goldenvalePark;
+	var parkName;
+	$.get(parkURL, function( data ) {
+		$parkData = $(data);
+		goldenvalePark = isNorthernEmpirePark($parkData);
+		parkName = parkNameFrom($parkData);	
+		numMonths = 5;
+	    attendanceDates = new Array();
+	    playerList = new HashMap();
+	    console.log("============== " + parkName + " ==============");
+
+	    // officers = getOfficers('http://amtgard.com/ork/orkui/index.php?Route=Admin/setparkofficers&ParkId=' + parkID);
+
+	    // monarch = officers['Monarch'];
+	    // console.log("Monarch: " + monarch['player'] + " (ORK id: " + monarch['user'] + ") ");
+	    // console.log("\r\nEmail or Contact Info: ____________________________________\r\n");
+
+	    // primeminister = officers['Prime Minister'];
+	    // console.log("Prime Minister: " + primeminister['player'] + " (ORK id: " + primeminister['user'] + ") ");
+	    // console.log("\r\nEmail or Contact Info: ____________________________________\r\n");
+
+	    // regent = officers['Regent'];
+	    // console.log("Regent: " + regent['player'] + " (ORK id: " + regent['user'] + ") ");
+	    // console.log("\r\nEmail or Contact Info: ____________________________________\r\n");
+
+	    // champion = officers['Champion'];
+	    // console.log("Champion: " + champion['player'] + " (ORK id: " + champion['user'] + ") ");
+	    // console.log("\r\nEmail or Contact Info: ____________________________________\r\n");
+
+     	aURL = 'http://amtgard.com/ork/orkui/index.php?Route=Reports/attendance/Park/' + parkNumber + '/Months/' + numMonths;
+    	getAttendanceDates(aURL);
+
+	});
+
 }
 
 function waitForAwards() {
@@ -139,6 +188,23 @@ function waitForAttendance() {
 		copyTextToClipboard(results.join(""));
 	} else {
 		$('#status').html(results.length + " of " + numberOfPlayers + " players")
+	}
+}
+
+function waitForTaCD() {
+	if (results.length == numberofEvents) {
+		clearInterval(timer);
+
+	    console.log("Year\tMonth\t1-15th\t16th-on\ttotal");
+	    playerList.forEach(function(aMonthMap, aYear) {
+	        aMonthMap.forEach(function(breakdown, aMonth) {
+	            if (quarter.indexOf(aMonth) != -1) {
+	                console.log(aYear + "\t" + aMonth + "\t" + breakdown.get('begin').length + "\t" + breakdown.get('end').length + "\t" + breakdown.get('month').length);
+	            }
+	        })
+	    })
+	} else {
+		$('#status').html(results.length + " of " + numberofEvents + " events")
 	}
 }
 
@@ -178,4 +244,75 @@ function startOfWeekFor(aMoment) {
 	setMomentToMidnight(startOfWeek);
 	startOfWeek.startOf('week');
 	return startOfWeek;
+}
+
+function isNorthernEmpirePark($pageContent) {
+	return $pageContent.find("li:contains('The Northern Empire')").length == 1
+} 
+
+function parkNameFrom($pageContent) {
+	return $($($pageContent.children()[1]).children()[3]).text()
+}
+
+function getPlayersFromUrl(playersURL, aBeginEnd, aMonth) {
+	$.get(playersURL, function( data ) {
+		var $playersHTML = $(data);
+		$playersHTML.find('.information-table').children().last().children().each(function(index, player) {
+			$player = $(player);
+	        playerName = $($player.children()[2]).text();
+	        if (aBeginEnd.indexOf(playerName) == -1)
+	            aBeginEnd.push(playerName);
+	            // console.log(beginEnd);
+	        if (aMonth.indexOf(playerName) == -1)
+	            aMonth.push(playerName);
+	            // console.log(aMonth);
+	    });
+	    results.push('more');
+	});
+}
+
+function getAttendanceDates(attendanceURL) {
+	$.get(attendanceURL, function( data ) {
+    	var $attendanceURL = $(data);
+    	var $attendanceDates = $attendanceURL.find('.information-table').children().first().next().children();
+    	numberofEvents = $attendanceDates.length;
+    	$attendanceDates.each(function(index, attendanceDate) {
+    		$attendanceDate = $(attendanceDate);
+	        aDateURL = "https:" + $attendanceDate.attr('onclick').substring($attendanceDate.attr('onclick').indexOf('//'));
+	        aDateURL = aDateURL.substring(0, aDateURL.length - 1);
+	        aDate = $attendanceDate.children().first().text();
+	        aMonthList = monthListForDate(aDate);
+	        beginEnd = null;
+	        if (aDate.split('-')[2] < 16) {
+	            beginEnd = aMonthList.get('begin');
+	        } else {
+	            beginEnd = aMonthList.get('end');
+	        }
+	        getPlayersFromUrl(aDateURL, beginEnd, aMonthList.get('month'));
+	    });
+		timer = setInterval(waitForTaCD, 1000);
+	});
+}
+
+function monthListForDate(aDate) {
+    dateArray = aDate.split('-');
+    year = dateArray[0];
+    month = dateArray[1];
+    day = dateArray[2];
+    yearMap = null;
+    monthMap = null;
+    yearMap = playerList.get(year);
+    if (!yearMap) {
+        yearMap = new HashMap();
+        playerList.set(year, yearMap);
+    }
+    monthMap = yearMap.get(month);
+    if (!monthMap) {
+        monthMap = new HashMap();
+        monthMap.set("begin", new Array());
+        monthMap.set("end", new Array());
+        monthMap.set("month", new Array());
+        yearMap.set(month, monthMap);
+    }
+    return monthMap;
 }

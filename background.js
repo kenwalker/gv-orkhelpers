@@ -68,11 +68,11 @@ chrome.contextMenus.create(
     "onclick" : calculateAttendanceNorthernEmpire()
   }
 );
-chrome.contextMenus.create(
-  {
-    "title" : "TaCD last quarter",
-    "type" : "normal",
-    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
-    "onclick" : calculateTaCD()
-  }
-);
+// chrome.contextMenus.create(
+//   {
+//     "title" : "TaCD last quarter",
+//     "type" : "normal",
+//     "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
+//     "onclick" : calculateTaCD()
+//   }
+// );
