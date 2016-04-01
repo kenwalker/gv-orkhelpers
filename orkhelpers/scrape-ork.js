@@ -1,8 +1,15 @@
+var MONTHS = ["Bogus", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 var results = [];
 var numberOfPlayers;
 var numberOfEvents;
 var timer;
 var tacdOutput = "";
+var tacdQuarter;
+var tacdYear;
+var officers = {};
+var finishedOfficers = true;
+var parkName;
+var isNorthernEmpirePark = false;
 var quarters = [];
 quarters['1'] = ['01', '02', '03'];
 quarters['2'] = ['04', '05', '06'];
@@ -39,6 +46,7 @@ function awardsFromPlayerData(pageContent) {
 function attendanceFromPlayerData(pageContent, minAttendance) {
 	var $pageContent = $(pageContent);
 	var players = $pageContent.find("a[href*='Route=Player']");
+	isNorthernEmpirePark = checkIfNorthernEmpirePark($pageContent);
 	numberOfPlayers = players.length;
 	players.each(function(index, player) {
 	    var url = new URL(player.href);
@@ -51,8 +59,6 @@ function attendanceFromPlayerData(pageContent, minAttendance) {
 
 	    url.protocol = 'https';
 	    $.get(url.href, function( data ) {
-	      // debugger;
-		  // placeholder for keeping track of current weeks attendance
 		  var currentWeek = null;
 		    
 		  var attendanceCount = 0;
@@ -94,7 +100,8 @@ function attendanceFromPlayerData(pageContent, minAttendance) {
 		      	}
 		     }
 	      });
-	      results.push(persona + "\t" + (((attendanceCount > (minAttendance - 1)) && earliestAttendance <= sixMonthsAgo) ? 'yes' : 'no') + "\t" + attendanceCount + "\t" + duesPaid + "\t" + parks.join(", ") + "\r\n");
+		  meetsStartingAttendance = isNorthernEmpirePark ? earliestAttendance <= sixMonthsAgo : true;
+	      results.push(persona + "\t" + (((attendanceCount > (minAttendance - 1)) && meetsStartingAttendance) ? 'yes' : 'no') + "\t" + attendanceCount + "\t" + duesPaid + "\t" + parks.join(", ") + "\r\n");
 	    });    
 	});
 	timer = setInterval(waitForAttendance, 1000);
@@ -121,42 +128,50 @@ function attendanceNorthernEmpireFromParkURL(parkURL) {
 	});
 }
 
-function tacdFromParkURL(parkURL) {
+function tacdFromParkURL(parkURL, aQuarter, aYear) {
 	var parkNumber = parkNumberFromURL(parkURL);
+	tacdQuarter = aQuarter;
+	tacdYear = aYear;
 	var goldenvalePark;
-	var parkName;
+	quarter = quarters[tacdQuarter];
 	$.get(parkURL, function( data ) {
 		$parkData = $(data);
-		goldenvalePark = isNorthernEmpirePark($parkData);
+		isNorthernEmpirePark = checkIfNorthernEmpirePark($parkData);
 		parkName = parkNameFrom($parkData);	
-		numMonths = 5;
+		numMonths = 14;
 	    attendanceDates = new Array();
 	    playerList = new HashMap();
 	    console.log("============== " + parkName + " ==============");
 
-	    // officers = getOfficers('http://amtgard.com/ork/orkui/index.php?Route=Admin/setparkofficers&ParkId=' + parkID);
-
-	    // monarch = officers['Monarch'];
-	    // console.log("Monarch: " + monarch['player'] + " (ORK id: " + monarch['user'] + ") ");
-	    // console.log("\r\nEmail or Contact Info: ____________________________________\r\n");
-
-	    // primeminister = officers['Prime Minister'];
-	    // console.log("Prime Minister: " + primeminister['player'] + " (ORK id: " + primeminister['user'] + ") ");
-	    // console.log("\r\nEmail or Contact Info: ____________________________________\r\n");
-
-	    // regent = officers['Regent'];
-	    // console.log("Regent: " + regent['player'] + " (ORK id: " + regent['user'] + ") ");
-	    // console.log("\r\nEmail or Contact Info: ____________________________________\r\n");
-
-	    // champion = officers['Champion'];
-	    // console.log("Champion: " + champion['player'] + " (ORK id: " + champion['user'] + ") ");
-	    // console.log("\r\nEmail or Contact Info: ____________________________________\r\n");
+	    getOfficers('http://amtgard.com/ork/orkui/index.php?Route=Admin/setparkofficers&ParkId=' + parkNumber);
 
      	aURL = 'http://amtgard.com/ork/orkui/index.php?Route=Reports/attendance/Park/' + parkNumber + '/Months/' + numMonths;
     	getAttendanceDates(aURL);
 
 	});
 
+}
+
+function getOfficers(officersURL) {
+    var fields = ['user', 'player', 'role', 'position', 'hidden1', 'hidden2'];
+    $.get(officersURL, function( data ) {
+		$officerData = $(data);
+	    $officerList = $officerData.find('.information-table').children().first().next().children();
+    	$officerList.each(function() {
+	        anOfficer = {};
+    	    var fieldPosition = 0;
+        	var $officerRow = $(this).first().children()
+       		$officerRow.each(function () {
+            	$rowItem = $(this);
+            	anOfficer[fields[fieldPosition]] = $rowItem.text();
+            	fieldPosition++;
+        	});
+        	if (anOfficer['position']) {
+           		officers[anOfficer['position']] = anOfficer;
+        	}
+    	});
+    	finishedOfficers = true;
+    });
 }
 
 function waitForAwards() {
@@ -192,19 +207,54 @@ function waitForAttendance() {
 }
 
 function waitForTaCD() {
-	if (results.length == numberofEvents) {
+	if (results.length == numberofEvents && finishedOfficers) {
 		clearInterval(timer);
+		output = [];
 
-	    console.log("Year\tMonth\t1-15th\t16th-on\ttotal");
+		kingdom = isNorthernEmpirePark ? "Northern Empire" : "Kingdom of Goldenvale";
+		output.push("== " + quarterAbbreviation(tacdQuarter) + " quarter, " + tacdYear + " TacD for " + parkName + " in the " + kingdom + " ==\r\n\r\n");
+
+	    monarch = officers['Monarch'];
+	    output.push("Monarch: " + monarch['player'] + " (ORK id: " + monarch['user'] + ") \r\n\r\n");
+	    output.push("Email or Contact Info: ____________________________________\r\n\r\n");
+
+	    primeminister = officers['Prime Minister'];
+	    output.push("Prime Minister: " + primeminister['player'] + " (ORK id: " + primeminister['user'] + ") \r\n\r\n");
+	    output.push("Email or Contact Info: ____________________________________\r\n\r\n");
+
+	    regent = officers['Regent'];
+	    output.push("Regent: " + regent['player'] + " (ORK id: " + regent['user'] + ") \r\n\r\n");
+	    output.push("Email or Contact Info: ____________________________________\r\n\r\n");
+
+	    champion = officers['Champion'];
+	    output.push("Champion: " + champion['player'] + " (ORK id: " + champion['user'] + ") \r\n\r\n");
+	    output.push("Email or Contact Info: ____________________________________\r\n\r\n");
+
+	    output.push("Year\tMonth\t1-15th\t16th-on\ttotal unique attendance\r\n");
 	    playerList.forEach(function(aMonthMap, aYear) {
-	        aMonthMap.forEach(function(breakdown, aMonth) {
-	            if (quarter.indexOf(aMonth) != -1) {
-	                console.log(aYear + "\t" + aMonth + "\t" + breakdown.get('begin').length + "\t" + breakdown.get('end').length + "\t" + breakdown.get('month').length);
-	            }
-	        })
+	    	if (aYear == tacdYear) {
+		        aMonthMap.forEach(function(breakdown, aMonth) {
+		            if (quarter.indexOf(aMonth) != -1) {
+		                output.push(aYear + "\t" + aMonth + "\t" + breakdown.get('begin').length + "\t" + breakdown.get('end').length + "\t" + breakdown.get('month').length + "\r\n");
+		            }
+		        })
+		     }
 	    })
+	    output.push("\r\n\r\n");
+	    if (!isNorthernEmpirePark) {
+	        quarter.forEach(function(aMonth) {
+	    	    output.push("\r\nFor " + MONTHS[parseInt(aMonth)] + ", _________ terms of dues paid by ____________________________________");
+	        	output.push("\r\nexample 3 terms of dues paid (Ann x2 and Bob x1)\r\n");
+	    	});
+		    output.push("\r\n_____ Total terms of dues paid, ____ (1$ per term paid) owed to the kingdom coffers.");
+		}
+		appendInstructions(output, isNorthernEmpirePark);
+		copyTextToClipboard(output.join(""));
+		$('#status').html("Done!<br>The TaCD results are in your clipboard<br>You should be able to paste<br>directly into an email");
+		$('#loader').hide();
+		$("#rerun-tacd").show();
 	} else {
-		$('#status').html(results.length + " of " + numberofEvents + " events")
+		$('#status').html("Looking at " + results.length + " of " + numberofEvents + " attendance dates")
 	}
 }
 
@@ -246,7 +296,7 @@ function startOfWeekFor(aMoment) {
 	return startOfWeek;
 }
 
-function isNorthernEmpirePark($pageContent) {
+function checkIfNorthernEmpirePark($pageContent) {
 	return $pageContent.find("li:contains('The Northern Empire')").length == 1
 } 
 
@@ -315,4 +365,41 @@ function monthListForDate(aDate) {
         yearMap.set(month, monthMap);
     }
     return monthMap;
+}
+
+function quarterAbbreviation(quarter) {
+  switch(quarter) {
+    case 1:
+      return '1st';
+    case 2:
+      return '2nd';
+    case 3:
+      return '3rd';
+    case 4:
+      return '4th';
+  }
+}
+
+function appendInstructions(output, isNorthernEmpirePark) {
+	var instructions1 = "\r\n\r\nHERE IS WHAT YOU HAVE TO DO:\r\n\r\n\
+If your Officers do not look right then the ORK is not right, I just grab it from there.\r\n\
+Sadly, I cannot get the email addresses from the ORK. So that is a manual task on your side.\r\n\
+Take everything above after you have modified it and email it to the Goldenvale Prime Minister. That email address can \
+be found on the Facebook Goldenvale Officers page.  If you do not have access ask Ken Walker.\r\n\r\n";
+
+	var gvInstructions = "Goldenvale CORE Parks you have to both update your specific page with your \
+officers contact information, if you have updated that you should be able to find that on your own ORK officers page. \
+The other thing you have to do is enter in the \
+terms paid per month, by whom and for how many terms they paid. Then you have to show how much tax you are \
+contributing.\r\b\r\n";
+
+	var instructions2 = "Technically for the latest TaCD you do not need the mid month attendance but sometimes it may be useful so I am leaving it in there.\r\n\r\n\
+Any issues, please PM me or comment on the GV Officers Page,\r\n\
+Ken Walker, Lord Kismet of Felfrost, Mover of Bits (ok, I made that up)";
+
+	output.push(instructions1);
+	if (!isNorthernEmpirePark) {
+		output.push(gvInstructions);
+	}
+	output.push(instructions2);
 }

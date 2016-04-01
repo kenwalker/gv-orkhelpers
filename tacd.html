@@ -4,16 +4,29 @@
     <script src="orkhelpers/scrape-ork.js"></script>
     <script src="orkhelpers/jquery-2.1.0.min.js"></script>
     <script src="orkhelpers/hashmap.js"></script>
-    <link href="tacd.css" rel="stylesheet" type="text/css"></link>
+    <script src="orkhelpers/moment.js"></script>
+    <link href="orkhelpers/orkhelpers.css" rel="stylesheet" type="text/css"></link>
     <script src="tacd.js"></script>
   </head>
   <body>
     <img id="gryphon" src="gv-gryphon-128.png">
-    <div id="loader">
-      TaCD for current quarter
+    <div id="quarter-area">
+      <div>Choose a TacD Quarter</div>
+
+      <select id="chosen-quarter">
+      </select>
+      <div>
+        <a id="generate-tacd"><button class="generate-button">Generate TaCD</button></a><br>
+      </div>
+    </div>
+    
+    <div id="loader" display="none">
+      <img src="progress.gif" /><br>
     </div>
     <div id="status">
-      Finding events for current quarter
+    </div>
+    <div id="rerun-area">
+      <a id="rerun-tacd"><button class="generate-button">Run Another Quarter?</button></a><br>
     </div>
   </body>
 </html>

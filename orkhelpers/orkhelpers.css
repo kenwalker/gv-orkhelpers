@@ -51,3 +51,55 @@ tr.rendered:nth-child(odd) {
   text-align: center;
   padding-top: 30px;
 }
+#quarter-area {
+  font: 24px Arial;
+  text-align: center;
+  padding-top: 20px;
+}
+#rerun-area {
+  font: 24px Arial;
+  text-align: center;
+  padding-top: 20px;
+}
+
+select {
+    margin: 10px;
+    border: 1px solid #111;
+    background: transparent;
+    width: 220px;
+    padding: 5px;
+    font-size: 16px;
+    text-align: center;
+    border: 1px solid #ccc;
+    height: 34px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.generate-button {
+    background-color: white; 
+    border: none;
+    color: black; 
+    padding: 16px 52px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 2px solid #008CBA;
+}
+
+.generate-button:hover {
+    background-color: #008CBA;
+    color: white;
+}
+
+.generate-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+};
