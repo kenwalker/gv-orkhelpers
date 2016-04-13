@@ -26,7 +26,7 @@ function calculateAttendanceKingdom() {
     // Pass the ORK page to the tacd.html
     var url = 'attendanceKingdom.html#' + orkParkPage.pageUrl;
 
-    // Create a new window to the tacd page.
+    // Create a new window to the attendance page.
     chrome.windows.create({ url: url, width: 520, height: 660 });
   };
 };
@@ -37,10 +37,23 @@ function calculateAttendanceNorthernEmpire() {
     // Pass the ORK page to the tacd.html
     var url = 'attendanceNorthernEmpire.html#' + orkParkPage.pageUrl;
 
-    // Create a new window to the tacd page.
+    // Create a new window to the attendance page.
     chrome.windows.create({ url: url, width: 520, height: 660 });
   };
 };
+
+function calculateRetiredPlayers() {
+  return function(orkParkPage, tab) {
+
+    // Pass the ORK page to the awards.html
+    var url = 'retired-check.html#' + orkParkPage.pageUrl;
+
+    // Create a new window to the retired players page.
+    chrome.windows.create({ url: url, width: 520, height: 660 });
+  };
+};
+
+
 /**
  * Create a context menu which will only show up for ORK Park pages.
  */
@@ -74,5 +87,13 @@ chrome.contextMenus.create(
     "type" : "normal",
     "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateTaCD()
+  }
+);
+chrome.contextMenus.create(
+  {
+    "title" : "Retired but Active list",
+    "type" : "normal",
+    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
+    "onclick" : calculateRetiredPlayers()
   }
 );

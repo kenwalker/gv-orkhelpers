@@ -16,6 +16,7 @@ quarters['2'] = ['04', '05', '06'];
 quarters['3'] = ['07', '08', '09'];
 quarters['4'] = ['10', '11', '12'];
 quarter = quarters[1];
+var playedWithinOneYear = [];
 
 function awardsFromPlayerData(pageContent) {
 	var $pageContent = $(pageContent);
@@ -107,6 +108,64 @@ function attendanceFromPlayerData(pageContent, minAttendance) {
 	timer = setInterval(waitForAttendance, 1000);
 }
 
+function retirementCheckFromRetiredData(pageContent) {
+	var $pageContent = $(pageContent);
+	var players = $pageContent.find("a[href*='Route=Player']");
+	numberOfPlayers = players.length;
+
+    // set up a date at midnight eight months ago at the beginning of the Goldenvale week starting on Sunday
+    var eightMonthsAgo = setMomentToMidnight(moment());
+    eightMonthsAgo.set('month', eightMonthsAgo.get('month') - 8);
+    eightMonthsAgo.startOf('week');
+    var counter = 0;
+
+	players.each(function(index, player) {
+		counter = counter + 1;
+	    var urlAttendance = new URL(player.href);
+	    urlAttendance.protocol = 'https';
+
+	    $.get(urlAttendance.href, function( data ) {
+	      var $playerHTML = $(data);
+	      var $attendance = $($($playerHTML.find("#Attendance thead")[1]).parent().children()[1]).children();
+	      var personaAttendance = $playerHTML.find("span:contains('Persona:')").next().html();
+	      var withinOneYear = false;
+	      var foundButOlderThanOneYear = false;
+	      $attendance.each(function() {
+	      	if (!withinOneYear && !foundButOlderThanOneYear) {
+		      	$attendanceTR = $(this);
+		      	$attendanceDateTD = $attendanceTR.children().first();
+		      	var newAttendanceInWeek = false;
+		      	var dateText = $attendanceDateTD.text();
+		      	// console.log("<" + dateText + "> for " + personaAttendance);
+		      	attendanceDate = setMomentToMidnightPlusOne(moment(dateText));
+		      	if (attendanceDate > eightMonthsAgo) {
+		      		withinOneYear = true;
+		      	}
+		      	if (attendanceDate < eightMonthsAgo) {
+		      		foundButOlderThanOneYear = true;
+		      	}
+		    }
+	      });
+	      if (personaAttendance == "" || personaAttendance == "...") {
+	      	console.log("removing (" + personaAttendance + ")");
+	      	numberOfPlayers = numberOfPlayers - 1;
+	      } else {
+	      	if (personaAttendance in playedWithinOneYear) {
+	      		numberOfPlayers = numberOfPlayers - 1;
+	      	} else {
+		      	if (withinOneYear) {
+		      		var playerNumber = this.url.split("/").pop();
+				    playedWithinOneYear[personaAttendance] = "https://amtgard.com/ork/orkui/index.php?Route=Player/index/" + playerNumber;
+				} else {
+					numberOfPlayers = numberOfPlayers - 1;
+				}
+			}
+	      }
+	    });
+	});
+	timer = setInterval(waitForRetiredCheck, 1000);
+}
+
 function awardsFromParkURL(parkURL) {
 	var parkNumber = parkNumberFromURL(parkURL);
 	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
@@ -125,6 +184,13 @@ function attendanceNorthernEmpireFromParkURL(parkURL) {
 	var parkNumber = parkNumberFromURL(parkURL);
 	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
 		attendanceFromPlayerData(data, 6);
+	});
+}
+
+function retiredCheckFromParkURL(parkURL) {
+	var parkNumber = parkNumberFromURL(parkURL);
+	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/inactive/Park&id=" + parkNumber, function( data ) {
+		retirementCheckFromRetiredData(data);
 	});
 }
 
@@ -203,6 +269,26 @@ function waitForAttendance() {
 		copyTextToClipboard(results.join(""));
 	} else {
 		$('#status').html(results.length + " of " + numberOfPlayers + " players")
+	}
+}
+
+function waitForRetiredCheck() {
+	var currentCount = Object.keys(playedWithinOneYear).length;
+	if (currentCount == numberOfPlayers) {
+		clearInterval(timer);
+		results.unshift("Persona\tPlayer URL\r\n");
+		var sortedPersonas = Object.keys(playedWithinOneYear).sort(function (a, b) {
+  			return a.toLowerCase().localeCompare(b.toLowerCase());
+		});
+		sortedPersonas.forEach( function (persona) {
+			results.push(persona + "\t" + playedWithinOneYear[persona] + "\r\n");
+		})
+
+		$('#status').html("Done!<br>The results are in your clipboard<br>You should be able to paste<br>directly into a spreadsheet");
+		$('#loader').hide();
+		copyTextToClipboard(results.join(""));
+	} else {
+		$('#status').html(currentCount + " of " + numberOfPlayers + " players")
 	}
 }
 
