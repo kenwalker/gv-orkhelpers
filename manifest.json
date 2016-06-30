@@ -1,6 +1,6 @@
 {
   "name" : "GV ORK Helpers",
-  "version" : "0.0.0.9",
+  "version" : "0.0.0.10",
   "description" : "ORK Helpers for TacD and Awards for Goldenvale",
   "background" : { "scripts": ["background.js"] },
   "permissions" : [

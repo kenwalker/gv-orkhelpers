@@ -173,6 +173,13 @@ function awardsFromParkURL(parkURL) {
 	});
 }
 
+function attendance8in6FromParkURL(parkURL) {
+	var parkNumber = parkNumberFromURL(parkURL);
+	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
+		attendanceFromPlayerData(data, 8);
+	});
+}
+
 function attendanceKingdomFromParkURL(parkURL) {
 	var parkNumber = parkNumberFromURL(parkURL);
 	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {

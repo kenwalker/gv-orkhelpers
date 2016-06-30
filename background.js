@@ -20,6 +20,17 @@ function calculateTaCD() {
   };
 };
 
+function calculateAttendance8in6() {
+  return function(orkParkPage, tab) {
+
+    // Pass the ORK page to the tacd.html
+    var url = 'attendance8in6.html#' + orkParkPage.pageUrl;
+
+    // Create a new window to the attendance page.
+    chrome.windows.create({ url: url, width: 520, height: 660 });
+  };
+};
+
 function calculateAttendanceKingdom() {
   return function(orkParkPage, tab) {
 
@@ -79,6 +90,14 @@ chrome.contextMenus.create(
     "type" : "normal",
     "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateAttendanceNorthernEmpire()
+  }
+);
+chrome.contextMenus.create(
+  {
+    "title" : "8 times in 6 months attendance qualified",
+    "type" : "normal",
+    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
+    "onclick" : calculateAttendance8in6()
   }
 );
 chrome.contextMenus.create(
