@@ -11,6 +11,10 @@ var finishedOfficers = true;
 var parkName;
 var isNorthernEmpirePark = false;
 var quarters = [];
+var numberOfDays = 0;
+var startDate = null;
+var endDate = null;
+var eventPark = null;
 quarters['1'] = ['01', '02', '03'];
 quarters['2'] = ['04', '05', '06'];
 quarters['3'] = ['07', '08', '09'];
@@ -20,7 +24,7 @@ var playedWithinOneYear = [];
 
 function awardsFromPlayerData(pageContent) {
 	var $pageContent = $(pageContent);
-	var awards = ["Dragon", "Flame", "Garber", "Gryphon", "Hydra", "Jovious", "Lion", "Mask", "Owl", "Rose", "Smith", "Warrior", "Zodiac"];
+	var awards = ["Order of the Dragon", "Order of the Flame", "Order of the Garber", "Order of the Gryphon", "Order of the Hydra", "Order of the Jovious", "Order of the Lion", "Order of the Mask", "Order of the Owl", "Order of the Rose", "Order of the Smith", "Order of the Warrior", "Order of the Zodiac", "Master Archer", "Master Assassin", "Master Barbarian", "Master Monk", "Master Scout", "Master Warrior", "Master Bard", "Master Druid", "Master Healer", "Master Wizard", "Master Anti-Paladin", "Master Paladin"];
 	var arrayLength = awards.length;
 	var players = $pageContent.find("a[href*='Route=Player']");
 	numberOfPlayers = players.length;
@@ -34,7 +38,13 @@ function awardsFromPlayerData(pageContent) {
 	      for (var i = 0; i < arrayLength; i++) {
 	        var award = awards[i];
 	        var awardCount = $playerHTML.find("#Awards td:contains('" + award + "')").length;
-	        outputLine = outputLine + award + " " + awardCount;
+	        if (award.startsWith("Master ")) {
+	        	if (awardCount > 0) {
+			        outputLine = outputLine + "Yes";
+			    }
+	        } else {
+		        outputLine = outputLine + awardCount;
+		    }
 	        if (i < arrayLength - 1)
 	          outputLine = outputLine + "\t";
 	      }
@@ -225,6 +235,40 @@ function tacdFromParkURL(parkURL, aQuarter, aYear) {
 
 }
 
+function eventAttendance(parkURL, theStartDate, theEndDate) {
+	startDate = theStartDate;
+	endDate = theEndDate;
+	movingStartDate = moment(theStartDate);
+	var parkNumber = parkNumberFromURL(parkURL);
+	uniquePlayersForEvent = new Array();
+	numberOfDays = endDate.diff(startDate, "days") + 1;
+	$.get(parkURL, function( data ) {
+		$parkData = $(data);
+		eventPark = parkNameFrom($parkData);
+		timer = setInterval(waitForEventAttendance, 1000);
+
+		for (var m = movingStartDate; movingStartDate.isSameOrBefore(endDate); movingStartDate.add(1, 'days')) {
+			var dateURL = "https://amtgard.com/ork/orkui/index.php?Route=Attendance/park/" + parkNumber + "&AttendanceDate=" + m.format('YYYY-MM-DD');
+			uniquesForAttendanceFromUrl(dateURL, uniquePlayersForEvent);
+		}
+	});
+}
+
+function uniquesForAttendanceFromUrl(dateURL, uniques) {
+	$.get(dateURL, function( data ) {
+		var $playersHTML = $(data);
+		$playersHTML.find('.information-table').children().last().children().each(function(index, player) {
+			$player = $(player);
+	        var playerName = $($player.children()[2]).text();
+	        if (uniques.indexOf(playerName) == -1) {
+	            uniques.push(playerName);
+	        }
+	    });
+	    results.push('more');
+	});
+}
+
+
 function getOfficers(officersURL) {
     var fields = ['user', 'player', 'role', 'position', 'hidden1', 'hidden2'];
     $.get(officersURL, function( data ) {
@@ -253,7 +297,7 @@ function waitForAwards() {
 		results.sort(function (a, b) {
   			return a.toLowerCase().localeCompare(b.toLowerCase());
 		});
-		results.unshift("Persona\tDragon\tFlame\tGarber\tGryphon\tHydra\tJovious\tLion\tMask\tOwl\tRose\tSmith\tWarrior\tZodiac\r\n");
+		results.unshift("Persona\tDragon\tFlame\tGarber\tGryphon\tHydra\tJovious\tLion\tMask\tOwl\tRose\tSmith\tWarrior\tZodiac\tMaster Archer\tMaster Assassin\tMaster Barbari`an\tMaster Monk\tMaster Scout\tMaster Warrior\tMaster Bard\tMaster Druid\tMaster Healer\tMaster Wizard\tMaster Anti-Paladin\tMaster Paladin\r\n");
 
 		$('#status').html("Done!<br>The results are in your clipboard<br>You should be able to paste<br>directly into a spreadsheet");
 		$('#loader').hide();
@@ -278,6 +322,26 @@ function waitForAttendance() {
 		$('#status').html(results.length + " of " + numberOfPlayers + " players")
 	}
 }
+
+function waitForEventAttendance() {
+	if (results.length === numberOfDays) {
+		clearInterval(timer);
+		output = [];
+		$('#status').html("Done!<br>The unique attendance results are in your clipboard<br>You should be able to paste<br>directly into a spreadsheet or document");
+		$('#loader').hide();
+		var sortedPersonas = uniquePlayersForEvent.sort(function (a, b) {
+  			return a.toLowerCase().localeCompare(b.toLowerCase());
+		});
+		output.push(sortedPersonas.length + " unique signatures for the " + eventPark + " event dates " + startDate.format('YYYY-MM-DD') + " to " + endDate.format('YYYY-MM-DD') + "\r\n");
+		sortedPersonas.forEach( function (persona) {
+			output.push(persona + "\r\n");
+		})
+		copyTextToClipboard(output.join(""));
+	} else {
+		$('#status').html(results.length + " of " + numberOfDays + " days to go")
+	}
+}
+
 
 function waitForRetiredCheck() {
 	var currentCount = Object.keys(playedWithinOneYear).length;
@@ -390,11 +454,12 @@ function startOfWeekFor(aMoment) {
 }
 
 function checkIfNorthernEmpirePark($pageContent) {
-	return $pageContent.find("li:contains('The Northern Empire')").length == 1
+	return $pageContent.find("li:contains('The Northern Empire')").length > 0
 } 
 
 function parkNameFrom($pageContent) {
-	return $($($pageContent.children()[1]).children()[3]).text()
+	// return $($($pageContent.children()[1]).children()[3]).text()
+	return $($($($pageContent.children()[1]).children()[0]).children()[3]).text();
 }
 
 function getPlayersFromUrl(playersURL, aBeginEnd, aMonth) {

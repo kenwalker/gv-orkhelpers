@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="orkhelpers/scrape-ork.js"></script>
+    <script src="orkhelpers/jquery-2.1.0.min.js"></script>
+    <script src="orkhelpers/hashmap.js"></script>
+    <script src="orkhelpers/moment.js"></script>
+    <link href="orkhelpers/orkhelpers.css" rel="stylesheet" type="text/css"></link>
+    <script src="eventAttendance.js"></script>
+  </head>
+  <body>
+    <img id="gryphon" src="gv-gryphon-128.png">
+    <div id="date-area">
+	  <p>This report is for gathering unique attendance for events.  Choose the start and end dates of the event and hit Generate</p>
+      <div>Choose a start date</div>
+      <input id="start-date" type="date">
+	  <div>Choose an end date</div>
+      <input id="end-date" type="date">
+      <div>
+        <a id="generate-event-addendance"><button class="generate-button">Generate Event Attendance</button></a><br>
+      </div>
+    </div>
+    
+    <div id="loader" display="none">
+      <img src="progress.gif" /><br>
+    </div>
+    <div id="status">
+    </div>
+  </body>
+</html>

@@ -20,6 +20,17 @@ function calculateTaCD() {
   };
 };
 
+function calculateEventAttendance() {
+  return function(orkParkPage, tab) {
+
+    // Pass the ORK page to the tacd.html
+    var url = 'eventAttendance.html#' + orkParkPage.pageUrl;
+
+    // Create a new window to the tacd page.
+    chrome.windows.create({ url: url, width: 520, height: 660 });
+  };
+};
+
 function calculateAttendance8in6() {
   return function(orkParkPage, tab) {
 
@@ -106,6 +117,14 @@ chrome.contextMenus.create(
     "type" : "normal",
     "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateTaCD()
+  }
+);
+chrome.contextMenus.create(
+  {
+    "title" : "Event Attendance",
+    "type" : "normal",
+    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
+    "onclick" : calculateEventAttendance()
   }
 );
 chrome.contextMenus.create(

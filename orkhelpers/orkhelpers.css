@@ -56,6 +56,19 @@ tr.rendered:nth-child(odd) {
   text-align: center;
   padding-top: 20px;
 }
+#date-area {
+  font: 24px Arial;
+  text-align: center;
+  padding-top: 20px;
+}
+
+#date-area p {
+  font: 18px Arial;
+  text-align: center;
+  padding-left: 40px;
+  padding-right: 40px;
+}
+
 #rerun-area {
   font: 24px Arial;
   text-align: center;
