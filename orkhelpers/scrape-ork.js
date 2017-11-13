@@ -54,10 +54,16 @@ function awardsFromPlayerData(pageContent) {
 	timer = setInterval(waitForAwards, 1000);
 }
 
-function attendanceFromPlayerData(pageContent, minAttendance) {
+function attendanceFromPlayerDataGV(pageContent, minAttendance, parkNumber) {
 	var $pageContent = $(pageContent);
+	var parkName = parkNameFrom($pageContent);
 	var players = $pageContent.find("a[href*='Route=Player']");
 	isNorthernEmpirePark = checkIfNorthernEmpirePark($pageContent);
+	moment.updateLocale('en', {
+		week: {
+    		dow: 0,
+  		},
+	});
 	numberOfPlayers = players.length;
 	players.each(function(index, player) {
 	    var url = new URL(player.href);
@@ -89,11 +95,19 @@ function attendanceFromPlayerData(pageContent, minAttendance) {
 	      	console.log("<" + dateText + "> for " + persona);
 	      	attendanceDate = setMomentToMidnightPlusOne(moment(dateText));
 	      	earliestAttendance = attendanceDate;
+	      	var validParkOrEvent = false;
+	      	var wasEvent = false;
 	      	attendancePark = $($attendanceTR.children()[2]).text();
 	      	if (attendancePark.length == 0) {
 		      	attendancePark = $($attendanceTR.children()[3]).text();
+		      	wasEvent = true;
+		      	validParkOrEvent = true;
+	      	} else {
+	      		if (parkName === attendancePark) {
+	      			validParkOrEvent = true;
+	      		}
 	      	}
-	      	if (attendanceDate > sixMonthsAgo) {
+	      	if (validParkOrEvent && attendanceDate > sixMonthsAgo) {
 		      	if (currentWeek) {
 		      		if (attendanceDate < currentWeek) {
 		      			newAttendanceInWeek = true;
@@ -104,10 +118,82 @@ function attendanceFromPlayerData(pageContent, minAttendance) {
 		      	if (newAttendanceInWeek) {
 	      			currentWeek = startOfWeekFor(attendanceDate);	      		
 		      		attendanceCount = attendanceCount + 1;
-			      	if (!parks.includes(attendancePark)) {
-			      		parks.push(attendancePark);
-		      		}
+		      		if (wasEvent) {
+		      			parks.push(attendancePark);
+		      		} else {
+				      	if (!parks.includes(attendancePark)) {
+				      		parks.push(attendancePark);
+			      		}
+			      	}
+		      	}
+		     }
+	      });
+		  meetsStartingAttendance = isNorthernEmpirePark ? earliestAttendance <= sixMonthsAgo : true;
+	      results.push(persona + "\t" + (((attendanceCount > (minAttendance - 1)) && meetsStartingAttendance) ? 'yes' : 'no') + "\t" + attendanceCount + "\t" + duesPaid + "\t" + parks.join(", ") + "\r\n");
+	    });    
+	});
+	timer = setInterval(waitForAttendance, 1000);
+}
 
+function attendanceFromPlayerDataNB(pageContent, minAttendance) {
+	var $pageContent = $(pageContent);
+	var parkName = parkNameFrom($pageContent);
+	var players = $pageContent.find("a[href*='Route=Player']");
+	isNorthernEmpirePark = checkIfNorthernEmpirePark($pageContent);
+	numberOfPlayers = players.length;
+	moment.updateLocale('en', {
+		week: {
+    		dow: 1,
+  		},
+	});
+	players.each(function(index, player) {
+	    var url = new URL(player.href);
+	    
+	    // set up a date at midnight 6 months ago at the beginning of the Goldenvale week starting on Sunday
+	    var sixMonthsAgo = setMomentToMidnight(moment());
+	    sixMonthsAgo.set('month', sixMonthsAgo.get('month') - 6);
+	    sixMonthsAgo.startOf('week');
+	    var earliestAttendance;
+
+	    url.protocol = 'https';
+	    $.get(url.href, function( data ) {
+		  var currentWeek = null;
+		    
+		  var attendanceCount = 0;
+	      var $playerHTML = $(data);
+	      var $attendance = $($($playerHTML.find("#Attendance thead")[1]).parent().children()[1]).children();
+	      var persona = $playerHTML.find("span:contains('Persona:')").next().html();
+	      var duesPaid = $playerHTML.find("span:contains('Dues Paid:')").next().html();
+	      if (duesPaid != "No") {
+	      	duesPaid = moment(duesPaid) <= moment() ? "No" : "Yes";
+	      }
+	      var parks = [];
+	      $attendance.each(function() {
+	      	$attendanceTR = $(this);
+	      	$attendanceDateTD = $attendanceTR.children().first();
+	      	var newAttendanceInWeek = false;
+	      	var dateText = $attendanceDateTD.text();
+	      	console.log("<" + dateText + "> for " + persona);
+	      	attendanceDate = setMomentToMidnightPlusOne(moment(dateText));
+	      	earliestAttendance = attendanceDate;
+	      	attendancePark = $($attendanceTR.children()[2]).text();
+	      	if (attendancePark.length > 0 && attendancePark === parkName) {
+		      	if (attendanceDate > sixMonthsAgo) {
+			      	if (currentWeek) {
+			      		if (attendanceDate < currentWeek) {
+		    	  			newAttendanceInWeek = true;
+		      			}
+		      		} else {
+		      			newAttendanceInWeek = true;
+		     	 	}
+		      		if (newAttendanceInWeek) {
+	      				currentWeek = startOfWeekFor(attendanceDate);	      		
+		      			attendanceCount = attendanceCount + 1;
+			      		if (!parks.includes(attendancePark)) {
+			      			parks.push(attendancePark);
+		      			}
+
+		      		}
 		      	}
 		     }
 	      });
@@ -193,14 +279,14 @@ function attendance8in6FromParkURL(parkURL) {
 function attendanceKingdomFromParkURL(parkURL) {
 	var parkNumber = parkNumberFromURL(parkURL);
 	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
-		attendanceFromPlayerData(data, 10);
+		attendanceFromPlayerDataGV(data, 10, parkNumber);
 	});
 }
 
 function attendanceNorthernEmpireFromParkURL(parkURL) {
 	var parkNumber = parkNumberFromURL(parkURL);
 	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
-		attendanceFromPlayerData(data, 6);
+		attendanceFromPlayerDataNB(data, 6, parkNumber);
 	});
 }
 
@@ -240,7 +326,7 @@ function eventAttendance(parkURL, theStartDate, theEndDate) {
 	endDate = theEndDate;
 	movingStartDate = moment(theStartDate);
 	var parkNumber = parkNumberFromURL(parkURL);
-	uniquePlayersForEvent = new Array();
+	uniquePlayerIDsForEvent = new Array();
 	numberOfDays = endDate.diff(startDate, "days") + 1;
 	$.get(parkURL, function( data ) {
 		$parkData = $(data);
@@ -249,7 +335,7 @@ function eventAttendance(parkURL, theStartDate, theEndDate) {
 
 		for (var m = movingStartDate; movingStartDate.isSameOrBefore(endDate); movingStartDate.add(1, 'days')) {
 			var dateURL = "https://amtgard.com/ork/orkui/index.php?Route=Attendance/park/" + parkNumber + "&AttendanceDate=" + m.format('YYYY-MM-DD');
-			uniquesForAttendanceFromUrl(dateURL, uniquePlayersForEvent);
+			uniquesForAttendanceFromUrl(dateURL, uniquePlayerIDsForEvent);
 		}
 	});
 }
@@ -259,9 +345,12 @@ function uniquesForAttendanceFromUrl(dateURL, uniques) {
 		var $playersHTML = $(data);
 		$playersHTML.find('.information-table').children().last().children().each(function(index, player) {
 			$player = $(player);
-	        var playerName = $($player.children()[2]).text();
-	        if (uniques.indexOf(playerName) == -1) {
-	            uniques.push(playerName);
+	        var playerHref = $($player.children()[2])[0].children[0].href;
+	        var lastSlash = playerHref.lastIndexOf("/");
+	        var playerID = playerHref.substr(lastSlash + 1);
+
+	        if (uniques.indexOf(playerID) == -1) {
+	            uniques.push(playerID);
 	        }
 	    });
 	    results.push('more');
@@ -326,19 +415,47 @@ function waitForAttendance() {
 function waitForEventAttendance() {
 	if (results.length === numberOfDays) {
 		clearInterval(timer);
-		output = [];
-		$('#status').html("Done!<br>The unique attendance results are in your clipboard<br>You should be able to paste<br>directly into a spreadsheet or document");
-		$('#loader').hide();
-		var sortedPersonas = uniquePlayersForEvent.sort(function (a, b) {
-  			return a.toLowerCase().localeCompare(b.toLowerCase());
+		uniquePlayersForEvent = new Array();
+		timer = setInterval(waitForEventAttendanceNamesAndParks, 1000);
+
+		uniquePlayerIDsForEvent.forEach(function(id) {
+			personaURL = "http://amtgard.com/ork/orkui/index.php?Route=Player/index/" + id;
+			$.get(personaURL, function( data ) {
+				$personaData = $(data);
+				isNorthernEmpirePark = checkIfNorthernEmpirePark($personaData);
+				parkName = parkNameFrom($personaData);
+				persona = personaFrom($personaData);
+				kingdom = kingdomFrom($personaData);
+				uniquePlayersForEvent.push({ persona: persona, parkName: parkName, kingdom: kingdom, isNorthernEmpirePark: isNorthernEmpirePark } );
+			})
 		});
-		output.push(sortedPersonas.length + " unique signatures for the " + eventPark + " event dates " + startDate.format('YYYY-MM-DD') + " to " + endDate.format('YYYY-MM-DD') + "\r\n");
-		sortedPersonas.forEach( function (persona) {
-			output.push(persona + "\r\n");
-		})
-		copyTextToClipboard(output.join(""));
 	} else {
 		$('#status').html(results.length + " of " + numberOfDays + " days to go")
+	}
+}
+
+function waitForEventAttendanceNamesAndParks() {
+	if (uniquePlayersForEvent.length === uniquePlayerIDsForEvent.length) {
+		clearInterval(timer);
+		output = [];
+		var sortedPlayers = uniquePlayersForEvent.sort(function (a, b) {
+			if (a.kingdom === b.kingdom) {
+				if (a.parkName === b.parkName) {
+		  			return a.persona.toLowerCase().localeCompare(b.persona.toLowerCase());
+	  			}
+  				return a.parkName.toLowerCase().localeCompare(b.parkName.toLowerCase());
+  			}
+  			return a.kingdom.toLowerCase().localeCompare(b.kingdom.toLowerCase());
+		});
+		output.push(sortedPlayers.length + " unique signatures for the " + eventPark + " event dates " + startDate.format('YYYY-MM-DD') + " to " + endDate.format('YYYY-MM-DD') + "\r\n");
+		sortedPlayers.forEach( function (player) {
+			output.push(player.persona + "\t" + player.parkName + "\t" + player.kingdom  + "\r\n");
+		})
+		copyTextToClipboard(output.join(""));
+		$('#status').html("Done!<br>The unique attendance results are in your clipboard<br>You should be able to paste<br>directly into a spreadsheet or document");
+		$('#loader').hide();
+	} else {
+		$('#status').html("Finding parks for " + uniquePlayersForEvent.length + " of " + uniquePlayerIDsForEvent.length + " personas")
 	}
 }
 
@@ -368,7 +485,7 @@ function waitForTaCD() {
 		clearInterval(timer);
 		output = [];
 
-		kingdom = isNorthernEmpirePark ? "Northern Empire" : "Kingdom of Goldenvale";
+		kingdom = isNorthernEmpirePark ? "Pricipality of the Nine Blades" : "Kingdom of Goldenvale";
 		output.push("== " + quarterAbbreviation(tacdQuarter) + " quarter, " + tacdYear + " TacD for " + parkName + " in the " + kingdom + " ==\r\n\r\n");
 
 	    monarch = officers['Monarch'];
@@ -403,7 +520,7 @@ function waitForTaCD() {
 	    	    output.push("\r\nFor " + MONTHS[parseInt(aMonth)] + ", _________ terms of dues paid by ____________________________________");
 	        	output.push("\r\nexample 3 terms of dues paid (Ann x2 and Bob x1)\r\n");
 	    	});
-		    output.push("\r\n_____ Total terms of dues paid, ____ (1$ per term paid) owed to the kingdom coffers.");
+		    output.push("\r\n_____ Total terms of dues paid, ____ ");
 		}
 		appendInstructions(output, isNorthernEmpirePark);
 		copyTextToClipboard(output.join(""));
@@ -454,12 +571,21 @@ function startOfWeekFor(aMoment) {
 }
 
 function checkIfNorthernEmpirePark($pageContent) {
-	return $pageContent.find("li:contains('The Northern Empire')").length > 0
+	return $($($($pageContent.children()[1]).children()[0]).children()[2]).text() === "Principality of the Nine Blades";
+} 
+
+function kingdomFrom($pageContent) {
+	return $($($($pageContent.children()[1]).children()[0]).children()[2]).text();
 } 
 
 function parkNameFrom($pageContent) {
 	// return $($($pageContent.children()[1]).children()[3]).text()
 	return $($($($pageContent.children()[1]).children()[0]).children()[3]).text();
+}
+
+function personaFrom($pageContent) {
+	// return $($($pageContent.children()[1]).children()[3]).text()
+	return $($($($pageContent.children()[1]).children()[0]).children()[4]).text();
 }
 
 function getPlayersFromUrl(playersURL, aBeginEnd, aMonth) {
@@ -545,11 +671,10 @@ Sadly, I cannot get the email addresses from the ORK. So that is a manual task o
 Take everything above after you have modified it and email it to the Goldenvale Prime Minister. That email address can \
 be found on the Facebook Goldenvale Officers page.  If you do not have access ask Ken Walker.\r\n\r\n";
 
-	var gvInstructions = "Goldenvale CORE Parks you have to both update your specific page with your \
-officers contact information, if you have updated that you should be able to find that on your own ORK officers page. \
+	var gvInstructions = "Goldenvale CORE Parks you have to update your specific page with your \
+officers contact information. If you have updated that you should be able to find that on your own ORK officers page. \
 The other thing you have to do is enter in the \
-terms paid per month, by whom and for how many terms they paid. Then you have to show how much tax you are \
-contributing.\r\b\r\n";
+terms paid per month, by whom and for how many terms they paid.\r\b\r\n";
 
 	var instructions2 = "Technically for the latest TaCD you do not need the mid month attendance but sometimes it may be useful so I am leaving it in there.\r\n\r\n\
 Any issues, please PM me or comment on the GV Officers Page,\r\n\

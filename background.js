@@ -89,7 +89,7 @@ chrome.contextMenus.create(
 );
 chrome.contextMenus.create(
   {
-    "title" : "Kingdom attendance qualified",
+    "title" : "GV Kingdom attendance qualified",
     "type" : "normal",
     "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateAttendanceKingdom()
@@ -97,18 +97,10 @@ chrome.contextMenus.create(
 );
 chrome.contextMenus.create(
   {
-    "title" : "Northern Empire attendance qualified",
+    "title" : "Nine Blades attendance qualified",
     "type" : "normal",
     "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateAttendanceNorthernEmpire()
-  }
-);
-chrome.contextMenus.create(
-  {
-    "title" : "8 times in 6 months attendance qualified",
-    "type" : "normal",
-    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
-    "onclick" : calculateAttendance8in6()
   }
 );
 chrome.contextMenus.create(
