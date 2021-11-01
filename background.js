@@ -83,7 +83,7 @@ chrome.contextMenus.create(
   {
     "title" : "Awards list for all players",
     "type" : "normal",
-    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
+    "documentUrlPatterns": ["https://ork.amtgard.com/orkui/index.php?Route=Park/index/*", "https://ork.amtgard.com/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateAwards()
   }
 );
@@ -91,7 +91,7 @@ chrome.contextMenus.create(
   {
     "title" : "GV Kingdom attendance qualified",
     "type" : "normal",
-    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
+    "documentUrlPatterns": ["https://ork.amtgard.com/orkui/index.php?Route=Park/index/*", "https://ork.amtgard.com/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateAttendanceKingdom()
   }
 );
@@ -99,7 +99,7 @@ chrome.contextMenus.create(
   {
     "title" : "Nine Blades attendance qualified",
     "type" : "normal",
-    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
+    "documentUrlPatterns": ["https://ork.amtgard.com/orkui/index.php?Route=Park/index/*", "https://ork.amtgard.com/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateAttendanceNorthernEmpire()
   }
 );
@@ -107,7 +107,7 @@ chrome.contextMenus.create(
   {
     "title" : "TaCD document generator",
     "type" : "normal",
-    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
+    "documentUrlPatterns": ["https://ork.amtgard.com/orkui/index.php?Route=Park/index/*", "https://ork.amtgard.com/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateTaCD()
   }
 );
@@ -115,7 +115,7 @@ chrome.contextMenus.create(
   {
     "title" : "Event Attendance",
     "type" : "normal",
-    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
+    "documentUrlPatterns": ["https://ork.amtgard.com/orkui/index.php?Route=Park/index/*", "https://ork.amtgard.com/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateEventAttendance()
   }
 );
@@ -123,7 +123,7 @@ chrome.contextMenus.create(
   {
     "title" : "Retired but Active list",
     "type" : "normal",
-    "documentUrlPatterns": ["https://amtgard.com/ork/orkui/index.php?Route=Park/index/*", "http://amtgard.com/ork/orkui/index.php?Route=Park/index/*"],
+    "documentUrlPatterns": ["https://ork.amtgard.com/orkui/index.php?Route=Park/index/*", "https://ork.amtgard.com/orkui/index.php?Route=Park/index/*"],
     "onclick" : calculateRetiredPlayers()
   }
 );

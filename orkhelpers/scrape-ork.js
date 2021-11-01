@@ -251,7 +251,7 @@ function retirementCheckFromRetiredData(pageContent) {
 	      	} else {
 		      	if (withinOneYear) {
 		      		var playerNumber = this.url.split("/").pop();
-				    playedWithinOneYear[personaAttendance] = "https://amtgard.com/ork/orkui/index.php?Route=Player/index/" + playerNumber;
+				    playedWithinOneYear[personaAttendance] = "https://ork.amtgard.com/orkui/index.php?Route=Player/index/" + playerNumber;
 				} else {
 					numberOfPlayers = numberOfPlayers - 1;
 				}
@@ -264,35 +264,35 @@ function retirementCheckFromRetiredData(pageContent) {
 
 function awardsFromParkURL(parkURL) {
 	var parkNumber = parkNumberFromURL(parkURL);
-	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
+	$.get("https://ork.amtgard.com/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
 		awardsFromPlayerData(data);
 	});
 }
 
 function attendance8in6FromParkURL(parkURL) {
 	var parkNumber = parkNumberFromURL(parkURL);
-	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
+	$.get("https://ork.amtgard.com/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
 		attendanceFromPlayerData(data, 8);
 	});
 }
 
 function attendanceKingdomFromParkURL(parkURL) {
 	var parkNumber = parkNumberFromURL(parkURL);
-	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
+	$.get("https://ork.amtgard.com/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
 		attendanceFromPlayerDataGV(data, 10, parkNumber);
 	});
 }
 
 function attendanceNorthernEmpireFromParkURL(parkURL) {
 	var parkNumber = parkNumberFromURL(parkURL);
-	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
+	$.get("https://ork.amtgard.com/orkui/index.php?Route=Reports/roster/Park&id=" + parkNumber, function( data ) {
 		attendanceFromPlayerDataNB(data, 6, parkNumber);
 	});
 }
 
 function retiredCheckFromParkURL(parkURL) {
 	var parkNumber = parkNumberFromURL(parkURL);
-	$.get("https://amtgard.com/ork/orkui/index.php?Route=Reports/inactive/Park&id=" + parkNumber, function( data ) {
+	$.get("https://ork.amtgard.com/orkui/index.php?Route=Reports/inactive/Park&id=" + parkNumber, function( data ) {
 		retirementCheckFromRetiredData(data);
 	});
 }
@@ -312,9 +312,9 @@ function tacdFromParkURL(parkURL, aQuarter, aYear) {
 	    playerList = new HashMap();
 	    console.log("============== " + parkName + " ==============");
 
-	    getOfficers('http://amtgard.com/ork/orkui/index.php?Route=Admin/setparkofficers&ParkId=' + parkNumber);
+	    getOfficers('https://ork.amtgard.com/orkui/index.php?Route=Admin/setparkofficers&ParkId=' + parkNumber);
 
-     	aURL = 'http://amtgard.com/ork/orkui/index.php?Route=Reports/attendance/Park/' + parkNumber + '/Months/' + numMonths;
+     	aURL = 'https://ork.amtgard.com/orkui/index.php?Route=Reports/attendance/Park/' + parkNumber + '/Months/' + numMonths;
     	getAttendanceDates(aURL);
 
 	});
@@ -334,7 +334,7 @@ function eventAttendance(parkURL, theStartDate, theEndDate) {
 		timer = setInterval(waitForEventAttendance, 1000);
 
 		for (var m = movingStartDate; movingStartDate.isSameOrBefore(endDate); movingStartDate.add(1, 'days')) {
-			var dateURL = "https://amtgard.com/ork/orkui/index.php?Route=Attendance/park/" + parkNumber + "&AttendanceDate=" + m.format('YYYY-MM-DD');
+			var dateURL = "https://ork.amtgard.com/orkui/index.php?Route=Attendance/park/" + parkNumber + "&AttendanceDate=" + m.format('YYYY-MM-DD');
 			uniquesForAttendanceFromUrl(dateURL, uniquePlayerIDsForEvent);
 		}
 	});
@@ -419,7 +419,7 @@ function waitForEventAttendance() {
 		timer = setInterval(waitForEventAttendanceNamesAndParks, 1000);
 
 		uniquePlayerIDsForEvent.forEach(function(id) {
-			personaURL = "http://amtgard.com/ork/orkui/index.php?Route=Player/index/" + id;
+			personaURL = "https://ork.amtgard.com/orkui/index.php?Route=Player/index/" + id;
 			$.get(personaURL, function( data ) {
 				$personaData = $(data);
 				isNorthernEmpirePark = checkIfNorthernEmpirePark($personaData);
